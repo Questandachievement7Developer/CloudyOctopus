@@ -1,5 +1,5 @@
 # freestadia
-A project that started privately that heavily inspired by Stadia allowing to play games through any browser that supported html5 (Yes even your fridge)
+A project that started privately that heavily inspired by Stadia allowing to play games through any browser that supported html5 (Yes even your fridge) hosted through your main computer 
 ## This Project is built upon these core Components
 - VNC
 - noVNC
