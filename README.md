@@ -2,7 +2,7 @@
 
 
 
-![octopus](https://clipartstation.com/wp-content/uploads/2018/09/baby-octopus-clipart-6.jpg | width=100)
+![octopus]( https://clipartstation.com/wp-content/uploads/2018/09/baby-octopus-clipart-6.jpg | width=100 )
 A project that started privately that heavily inspired by Google Stadia allowing to play games or use Desktop through any browser that supported html5 (Yes even your fridge) hosted through your main computer easily (relatively speaking) 
 > This Repo is formerly known as Freestadia but i changed it xd
 ## This Project is built upon these core Components
