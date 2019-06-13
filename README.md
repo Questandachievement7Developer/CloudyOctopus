@@ -1,4 +1,4 @@
-# freestadia
+# freestadia :octocat:
 A project that started privately that heavily inspired by Google Stadia allowing to play games or use Desktop through any browser that supported html5 (Yes even your fridge) hosted through your main computer easily (relatively speaking) 
 ## This Project is built upon these core Components
 - VNC
@@ -27,18 +27,24 @@ However if you still presist and want to taste the development version you could
 
 ## Steps to install
 1. Get the file on local computer either
-A) Git clone it with
+  * Git clone it with
 ```
 git clone https://github.com/Questandachievement7Developer/freestadia
 ```
-B) Download zip or Download the Releases Static Script
-2. Launch the Script
+  * Download zip or Download the Releases Static Script
+2. Create user.txt on the folder ( the example content of the user.txt should be like this) Do not use spaces or numbers on their name
+```
+Robert
+Okarima
+Njordlant
+```
+3. Launch the Script
 ```
 sh servermanager
 ```
-3. It will prompt you a password just type any password what you wanted
-4. Wait
-5. Finished
+4. It will prompt you a password just type any password what you wanted
+5. Wait
+6. Finished
 
 # Servermanager Additional Commands
 1. Launch Normally
