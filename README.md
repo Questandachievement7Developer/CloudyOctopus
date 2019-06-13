@@ -9,7 +9,7 @@ A project that started privately that heavily inspired by Stadia allowing to pla
 - Wine
 - Xserver (of course)
 - HTML5 ,JS
-- and more
+- Proot and more!
 ## Since this is really in early development however there are several Things to be considered not working yet
 - Audio
 - Controller Forwarding
