@@ -1,0 +1,16 @@
+#!/bin/bash
+echo varpassGPU GPU GPU GPU $VGL_DRAWABLE $VGL_FORCEALPHA GPU GPU GPU GPU2
+while true ;do
+zenity --warning --text 'this login is fake for now' --title 'Login Demo'
+loginprompt(){
+passwd=$(zenity --password --title="User ${currentuser} Login" )
+if [ -z $passwd ] ;then
+    zenity --warning --text 'Please Input Password' --title 'Login Demo'
+    loginprompt
+fi
+}
+loginprompt
+zenity --info --text 'login success'  --title stub
+sh /inituserDesktop
+sleep 360
+done

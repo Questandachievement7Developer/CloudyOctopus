@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#Establish Hostname
+ls /
+ls /noVNC
+set -x
+cp /usr/bin/busybox /root/hostname
+hostname Stadiareplica_${currentuser}
+echo varpass GPU GPU GPU GPU $VGL_DRAWABLE $VGL_FORCEALPHA GPU GPU GPU GPU3
+echo launching Window manager 
+
+vglrun $RENDEROPTION steam -bigpicture &
+vglrun $RENDEROPTION wine explorer.exe &
+vglrun $RENDEROPTION xterm &
+vglrun $RENDEROPTION nautilus &
+#Establish Wallpaper
+#magick display -background "#FFFF0F" -antialias -alpha on -backdrop -window root /bg/bg1.jpeg
+sleep 4
+#migrate VNC temporary git import
+if [ -d /novnctmp ] ;then
+cp -rv /novnctmp/* /noVNC/
+rm -rfv /novnctmp
+echo noVNC has been installed
+fi
+chmod -R 777 /noVNC
+cd /noVNC
+sed -i "s/WorkstationUSUARNAMAE/Assigned${currentuser}/g" index.html
+kill -9 $(pgrep -f "listen ${assignedWebPlayerPort}")
+./utils/launch.sh --vnc localhost:$portCount --listen ${assignedWebPlayerPort}
+echo Saving State
+sync
+sleep 999
+exit

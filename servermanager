@@ -1,0 +1,527 @@
+#!/bin/sh
+
+#set -x
+#Define Variables
+export initdir=$(pwd)
+export PROOT_NO_SECCOMP=1
+export mountfolder="$(pwd)/io"
+export serverConfiguration="${initdir}/appServerConfig"
+export container=userdata.img
+export mainConfig="${initdir}/base/mainConfig/*"
+export corepkg="wine firefox openssh core virtualgl procps wine-staging vk3d wine_gecko fish gtk3 winetricks imagemagick python python-setuptools tigervnc busybox base-devel virglrenderer npm git wget yajl mesa sudo metacity python-numpy lxqt numpy steam nautilus xterm gnome-terminal mesa-demos libxtst pulseaudio gdk-pixbuf2 libva libvdpau vulkan-driver lutris firefox vulkan-icd-loader lib32-vulkan-icd-loader"
+export PATH=${PATH}:${initdir}/pororoot
+export initsrc="${initdir}/base/initscript/*"
+export http_proxy=
+
+
+
+
+#Soft Colour palletes
+#printf '\e[38;5;210m ' red
+#printf '\e[38;5;221m ' yellow
+#printf '\e[38;5;042m ' green
+#printf '\e[38;5;039m ' blue
+
+red(){ 
+printf '\e[38;5;210m' 
+}
+yellow(){ 
+printf '\e[38;5;221m' 
+}
+green(){ 
+printf '\e[38;5;042m'
+}
+blue(){ 
+printf '\e[38;5;039m'
+}
+
+currentuser_umount(){
+echo Attempting to Unmount current folder
+umount -lf dev sys proc
+}
+
+clean_umount(){
+    if [ ! -d $mountfolder ] ;then
+        yellow
+        echo Mounting Point is not found
+        echo If you believe this is an error please use set -x to Debug the script
+        echo if not the Bootloader will continue to boot but CAUTION
+         sleep 5
+    fi	
+    cd $mountfolder
+	for a in $(pgrep chroot); do
+		kill -9 $a
+	done
+	for a in * ; do
+		sync
+		umount -lf $a/dev $a/sys $a/proc
+   	done
+    green
+    #delete Disposable Image
+    echo Cleaning Up
+    rm -rf Disposable
+    #Shrinking Image
+
+    #umount the image
+	cd ${initdir}
+	umount -lf $mountfolder
+	rm -r $mountfolder
+}
+
+
+user_container_create(){
+cd $mountfolder
+green
+for user in $userlist ; do
+    cd $user
+    chroot . useradd ${user} -p default_${user}
+    cd $mountfolder
+done
+}
+
+
+clean_mount(){
+    cd ${mountfolder}
+    green
+    for a in * ; do
+    mount --bind /dev ${a}/dev
+    mount --bind /sys ${a}/sys
+    mount --bind /proc ${a}/proc
+    done
+    echo All Container Mounted
+    cd $initdir
+}
+
+currentuser_mount(){
+ mount --bind /dev dev
+    mount --bind /sys sys
+    mount --bind /proc proc
+}
+
+memory_LMK_setup(){
+	cd $initdir
+	git clone https://github.com/rfjakob/earlyoom
+	cd earlyoom
+    ./configure
+	make
+	make install
+	cd $initdir
+}
+
+duperemove_setup(){
+    echo stub
+}
+
+memory_LMK_Daemon(){
+    idcheck=$(pgrep earlyoom)
+    if [ ! -z $idcheck ] ;then
+	echo Earlyoom Found
+    else
+    nohup earlyoom &
+    fi 
+}
+
+stop_container(){
+red
+kill -a -s 9 $(pgrep vnc)
+kill -a -s 9 $(pgrep proot)
+kill -a -s 9 $(pgrep novnc)
+kill -a -s 9 $(pgrep .exe)
+echo Stopping User
+userlist=$(cat ${initdir}/user.txt)
+for a in $userlist ; do
+    pkill -9 -u ${a}
+    echo ${a}
+done
+sleep 5
+}
+
+if [ $1 == 'reset' ]; then
+    red
+	echo Resetting System
+	clean_umount
+    cd $initdir
+	rm -rf jailkit earlyoom $container
+	sleep 3
+	cd $initdir
+	sh $0
+fi
+
+stop_server(){
+    red
+    echo Debooting
+    clean_umount
+    stop_container
+    echo debooting command has been executed
+}
+
+if [ $1 == 'stop' ] ;then
+    stop_server
+    exit
+fi
+
+
+if [ $1 == 'oops' ]; then
+sync
+echo c > /proc/sysrq-trigger
+exit
+fi
+
+chmod 777 $0
+pacman -Sy virtualgl btrfs-progs wget busybox git tmux dialog --noconfirm --needed
+userdef=user.txt
+if [ ! -f $userdef ] ; then
+echo User is not defined yet please make a $userdef file and add the user that is going to be set up
+exit
+else
+userlist=$(cat $userdef)
+	if [ -z $userlist ] ;then
+	 echo Userdefine cannot be empty
+	 exit
+	fi
+fi
+
+
+
+#prepare UserFolder Function
+prepare_Userfolder(){
+cd $initdir
+yellow
+echo Preparing Userfolder
+echo Turning Datacow moooooooo saving a lot of space
+cd $mountfolder
+for a in $userlist ; do
+mkdir $a
+cp -r --reflink=always originState/* $a
+mkdir ${a}/home
+mkdir ${a}/home/${a}
+mv ${a}/novnctmp/* ${a}/noVNC/
+chroot ${a} chsh -s /usr/bin/fish ${a} # changing User Default Shell for more intuitive learning 
+chown -R ${a} ${a}/home/${a}
+echo $a Folder Created
+echo Injecting Distro Costumization
+cp -ru ${initdir}/distrocostumization/* $a/
+done
+
+}
+
+
+#Mount Userdata Function
+mount_userdata(){
+yellow
+if [ ! -d $mountfolder ] ;then
+cd $initdir
+mkdir $mountfolder
+fi
+mount -o loop,lazytime,compress-force=zlib,datacow $container $mountfolder
+}
+
+
+
+jailkit_setup(){
+	cd $initdir
+	#Jail kit is for Jailing User from accessing the system
+	mkdir jailkit
+	wget https://olivier.sessink.nl/jailkit/jailkit-2.20.tar.gz
+	mv jailkit-2.20.tar.gz jailkit
+	cd jailkit
+	tar -xf jailkit-2.20.tar.gz
+    cd jailkit-2.20
+	./configure
+	make
+	make install
+	echo Jailkit Installed
+	cd $initdir
+}
+
+
+optimize_IO(){
+    green
+    echo Optimizing IO speed
+    duperemove -dr $mountfolder
+    btrfs filesystem defragment -r -v -c zlib:9 $mountfolder
+}
+
+
+
+#install SystemFunction
+install_system(){
+cd $initdir
+red
+echo Combining Package
+cat base/xa* > $mountfolder/base.tar.gz
+cd $mountfolder
+mkdir originState
+mv base.tar.gz originState/base.tar.gz
+cd originState
+tar -vxf base.tar.gz
+mv x86_64/* .
+#Setting up VirtualGL
+echo Setting up virtualGL
+vglserver_config
+#setting up the container
+ContainerSetup_0
+sleep 4
+distribute_originOS #Distribute OriginOS the function is to distribute the Master Jail OS then Applied to the Users Folder 
+sleep 5
+echo Break Point
+exit
+}
+
+#download Speedup for pacman
+dwn_speedup(){
+chroot . pacman -Syy
+}
+
+disposeable_system(){  
+    yellow
+    mount_userdata
+    cd $mountfolder
+    clear
+    echo Creating Disposable userdata
+    cp -r --reflink=always originState Disposable
+    cd Disposable
+    green
+    currentuser_mount
+    echo Disposable User Deployed
+
+    chroot . /usr/bin/fish
+    sleep 4
+    currentuser_umount
+    clean_umount
+    cd $initdir
+    exit
+}
+
+distribute_originOS(){
+red
+clean_umount
+stop_container
+mount_userdata
+yellow
+prepare_Userfolder
+user_container_create
+green
+clean_umount
+}
+
+
+
+
+webremote_setup(){
+chroot . git clone https://github.com/novnc/noVNC novnctmp
+chroot . mv novnctmp/* /noVNC
+}
+
+#Container Setup
+ContainerSetup_0(){
+cd ${mountfolder}/originState
+if [ ! -d ${mountfolder}/originState ] ; then
+    red
+    echo BUG detected and cannot be continued 
+    echo To prevent further damage onto the installation
+    exit
+fi
+	echo $(pwd)
+echo Writing and installing Important Files File
+#start write
+echo "nameserver 1.1.1.1" > etc/resolv.conf
+echo "nameserver 8.8.8.8" >> etc/resolv.conf
+chmod 777 etc/resolv.conf
+#Comment out the Server on mirrorlist
+sed -i 's/#Server/Server/g' etc/pacman.d/mirrorlist
+# We cannot check disk space from within a chroot environment
+sed -i 's/CheckSpace/#CheckSpace/g' etc/pacman.conf
+echo '[multilib]' >> etc/pacman.conf
+echo 'Include = /etc/pacman.d/mirrorlist' >> etc/pacman.conf
+awk '!a[$0]++' etc/pacman.conf #Check if there is any duplicate Entry which hampers performance
+# Thank you Cyberciti.biz
+#mounting temporary Mount point
+mount --bind /dev dev
+mount --bind /sys sys
+mount --bind /proc proc
+# please dont forget to Unmount later on
+#executes and install stuff on the container
+yellow
+echo Applying main Configuration
+cp -r $mainConfig .
+echo Populating Keys
+chroot . pacman-key --init
+chroot . pacman-key --populate archlinux
+green
+echo Updating Base system
+chroot . pacman -Syu --noconfirm --overwrite '*'
+echo Installing Core packages
+
+for a in $corepkg ; do
+chroot . pacman -S --needed --noconfirm --overwrite '*' ${a} --noconfirm --needed
+done
+echo Runnig WebSetup for noVNC
+webremote_setup
+echo Change the password please for root only
+chroot . passwd
+chroot . mkdir /tmp
+webremote_setup
+echo Changing Shell
+chroot . chsh -s /usr/bin/fish
+echo Cleaning Up cache
+echo Cleaning UP wine
+rm -rf tmp/* tmp/.* root/.wine
+clear
+echo Unmounting all Mounts
+currentuser_umount
+}
+
+
+update_dependencies(){
+cd $mountfolder
+for user in $userlist ; do
+    cd $user
+    echo $user Managing
+    for i in $corepkg ; do
+    chroot . pacman -S --noconfirm --needed --overwrite '*' $i
+    done
+    cd $mountfolder
+done
+echo Updating Done
+sleep 10
+}
+
+
+if [ $1 == 'test' ] ; then
+        echo Disposable mode Launching
+        disposeable_system
+        exit
+fi
+
+
+if [ $1 == 'updatesync' ] ;then
+    cd $initdir
+    if [ ! -d $mountfolder ] ;then
+     mount_userdata
+     clean_mount
+    fi
+    echo Folder has been Mounted 
+    echo You must unmount manually
+    blue
+    update_dependencies 
+    clean_umount
+    exit
+fi
+
+
+
+
+$1
+
+
+
+if [ $1 == 'mountdev' ];then
+    echo Mounting
+    mount_userdata
+    clean_mount
+    exit
+fi
+
+updateCustom(){
+red
+echo Copying Configuration
+cp -rv $mainConfig .
+}
+
+injectinit(){
+chmod -R 777 ${initsrc}
+cp -rv ${initsrc} .
+}
+
+launchInit(){
+echo $a
+DisplayCount=$(( $DisplayCount + 1 ))
+userID=$DisplayCount
+useradd "${a}"
+export DISPLAY=:$DisplayCount
+cd $a
+echo launching Virtual Framebuffer
+#chroot . sudo -u ${a} vncserver :$DisplayCount -geometry 1280x720 -CompareFB -ImprovedHextile -SecurityTypes None -ZlibLevel=9 -shmem +iglx +bs +xinerama
+portCount=$(( 5900 + $DisplayCount ))
+assignedWebPlayerPort=$(( 6080 + $DisplayCount ))
+injectinit
+green
+echo oaugsdliyagflsiayuloauysdliaughcliabygucliayguliatyguxliatygudxliagutalxiyhulizudlsiuyalsxuyhlzik
+updateCustom
+chroot . chmod -R 777 /root /tmp /noVNC
+sudo -u ${a} env PROOT_NO_SECCOMP=1 proot -0 -r . -b /dev -b /sys -b /proc -w /root env -i HOME=/root currentuser=$a PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games:/root TERM=$TERM portCount=$portCount DisplayCount=$DisplayCount assignedWebPlayerPort=${assignedWebPlayerPort} /bin/bash /init &
+sleep 4 
+cd $mountfolder
+}
+
+bootalluser(){
+cd $initdir
+#clean_mount
+#clean _mount is disabled in here because due to the security reason and compatibility reason with proot
+mount_userdata
+memory_LMK_Daemon &
+echo $userlist List that Targeted to be booted up
+DisplayCount=1000
+cd $mountfolder
+for a in $userlist ; do
+launchInit
+echo For user $a have VNC on $portCount 
+done
+echo System has been attempted bootedup
+sleep 30
+exit
+
+
+}
+
+
+if [ $1 == 'reinstall_alluser' ] ;then
+cd ${mountfolder}/originState
+clean_umount
+stop_container
+ContainerSetup_0
+distribute_originOS
+exit
+fi
+
+
+if [ $1 == 'restart' ] ;then
+    stop_server
+    bootalluser
+    exit
+fi
+
+# Where Main Scripts Starts
+#the main runtime that checks and Run all the Container Available and Run the Management Engine
+echo User are defined ${userlist}
+sleep 3
+echo Checking Container
+
+modprobe btrfs
+if [ ! -f $container ]; then
+	echo $container not found Creating
+	jailkit_setup
+    memory_LMK_setup
+  dd if=/dev/zero of=$container bs=1 count=0 seek=64G
+	if [ ! -f $container ] ;then
+	  echo BUG detected Userdata is not Created  
+      echo Breaking in line 414
+	  exit
+	fi
+	echo $(pwd)
+	mkfs.btrfs -f $container
+	sleep 3
+	mount_userdata
+	sleep 5
+	echo Importing Archlinux Installation Container
+	install_system
+	sleep 10
+   else
+    echo Booting System
+        bootalluser
+    exit
+fi
+echo Runtime Finished
+to run again please do ./$0
+exit

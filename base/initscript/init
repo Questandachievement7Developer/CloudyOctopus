@@ -1,0 +1,38 @@
+#!/bin/bash
+#unsetting DBUS manager
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+
+if [ $DisplayCount == '1001' ] ;then
+echo im sorry 1001 Display Number cant pass 
+exit
+fi
+
+#initialize Dedicated Monitor
+rm /tmp/.X${DisplayCount}-lock
+rm /tmp/.X11-unix/X${DisplayCount}
+vncserver -kill :$DisplayCount
+#vncserver :$DisplayCount -CompareFB -ImprovedHextile -SecurityTypes None -ZlibLevel=9 -shmem +iglx +bs +xinerama
+vncserver :$DisplayCount -CompareFB -ImprovedHextile -SecurityTypes None -ZlibLevel=9 -shmem +iglx +bs +xinerama -noxstartup
+export DISPLAY=:$DisplayCount
+export VGL_DISPLAY=:${DisplayCount}.0
+#initialize Window manager
+vglrun $RENDEROPTION metacity --composite &
+
+
+echo Switching Rendering to Pixmap and optimizing GPU
+#Because im using AMDGPU :(
+export VGL_DRAWABLE=pixmap
+export VGL_FORCEALPHA=1
+echo varpassGPU GPU GPU GPU $VGL_DRAWABLE $VGL_FORCEALPHA GPU GPU GPU GPU1
+export RENDEROPTION="-sync +v +wm -ge +xcb -q 100" #virgl Option
+
+
+#Clearing TMP folder
+rm -rf /tmp/*
+rm -rf /tmp/.*
+
+echo Transitioning to login prompt
+while true ; do
+sh /inituserloginprompt
+done 
