@@ -1,4 +1,4 @@
-# freestadia :octocat:
+# :sparkles: :sparkles: :sparkles: freestadia :sparkles: :sparkles: :sparkles:
 A project that started privately that heavily inspired by Google Stadia allowing to play games or use Desktop through any browser that supported html5 (Yes even your fridge) hosted through your main computer easily (relatively speaking) 
 ## This Project is built upon these core Components
 - VNC
@@ -31,7 +31,8 @@ However if you still presist and want to taste the development version you could
 ```
 git clone https://github.com/Questandachievement7Developer/freestadia
 ```
-  * Download zip or Download the Releases Static Script
+  * Download zip using Clone or download button on Right side
+  * Download static Script file from releases tabs ( unavailable )
 2. Create user.txt on the folder ( the example content of the user.txt should be like this) Do not use spaces or numbers on their name
 ```
 Robert
