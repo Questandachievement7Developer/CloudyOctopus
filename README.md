@@ -10,6 +10,7 @@ A project that started privately that heavily inspired by Google Stadia allowing
 - Xserver (of course)
 - HTML5 ,JS
 - Proot and more!
+> no wonder my computer crashes when i run this
 ## Since this is really in early development however there are several Things to be considered not working yet
 - Audio
 - Peripherals Controller Forwarding
