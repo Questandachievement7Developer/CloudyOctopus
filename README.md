@@ -1,5 +1,6 @@
-# :sparkles: freestadia :sparkles: 
+# :sparkles: CloudyOctopus :sparkles: 
 A project that started privately that heavily inspired by Google Stadia allowing to play games or use Desktop through any browser that supported html5 (Yes even your fridge) hosted through your main computer easily (relatively speaking) 
+> This Repo is formerly known as Freestadia but i changed it xd
 ## This Project is built upon these core Components
 - VNC
 - noVNC
