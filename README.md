@@ -26,4 +26,55 @@ However if you still presist and want to taste the development version you could
 - Linux Kernel at least 4.19 above
 
 ## Steps to install
-1. 
+1. Get the file on local computer either
+A) Git clone it with
+```
+git clone https://github.com/Questandachievement7Developer/freestadia
+```
+B) Download zip or Download the Releases Static Script
+2. Launch the Script
+```
+sh servermanager
+```
+3. It will prompt you a password just type any password what you wanted
+4. Wait
+5. Finished
+
+# Servermanager Additional Commands
+1. Launch Normally
+```
+sh servermanager
+```
+2. Stop Server
+```
+sh servermanager stop
+```
+3. Reset Server data ( This will delete user data )
+```
+sh servermanager reset
+```
+4. Reinstall All System user (This wont delete userdata)
+```
+sh servermanager reinstall_alluser
+```
+5. Restart Users in the Server
+```
+sh servermanager restart
+```
+6. Crash the server?
+```
+sh servermanager oops
+```
+7. Create a dummy profile to test and develop profiles
+```
+sh servermanager test
+```
+8. Update all Users system
+```
+sh servermanager updatesync
+```
+9. Mount all containers without launching it
+```
+sh servermanager mountdev
+```
+## Thats it Remember its still in Development Stage
