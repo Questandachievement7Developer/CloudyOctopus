@@ -42,7 +42,9 @@ git clone https://github.com/Questandachievement7Developer/freestadia
 ```
 Robert
 Okarima
-Njordlant
+Albin
+brfxxccxxmnpcccclllmmnprxvclmnckssqlbb11116 (please dont use the number xd)
+takoluka
 ```
 3. Launch the Script
 ```
